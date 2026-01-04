@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iguazú AR - Vivaldi Synthesizer</title>
+    <title>Iguazú AR - Vivaldi Experience</title>
     
     <!-- A-Frame y MindAR -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -58,7 +58,7 @@
         
         .progress-bar {
             height: 20px;
-            background: rgba(75, 192, 192, 0.6);
+            background: rgba(210, 180, 140, 0.6); /* Color sepia */
             width: 0%;
             transition: width 0.3s ease;
             border-radius: 10px;
@@ -79,9 +79,9 @@
             width: 200px;
             height: 200px;
             background: rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(75, 192, 192, 0.4);
+            border: 2px solid rgba(210, 180, 140, 0.4);
             border-radius: 8px;
-            box-shadow: 0 0 20px rgba(75, 192, 192, 0.2);
+            box-shadow: 0 0 20px rgba(210, 180, 140, 0.2);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -103,6 +103,7 @@
             max-height: 90%;
             border-radius: 6px;
             opacity: 0.6;
+            filter: sepia(0.3);
         }
         
         /* Instrucciones - 50% transparente */
@@ -117,72 +118,65 @@
             padding: 12px;
             z-index: 10;
             font-size: 15px;
-            border-bottom: 1px solid rgba(75, 192, 192, 0.3);
+            font-style: italic;
+            border-bottom: 1px solid rgba(210, 180, 140, 0.3);
         }
         
-        /* Controles de música - 50% transparente */
-        #music-controls {
+        /* Mensaje de escaneo - 50% transparente */
+        .scanning-message {
             position: fixed;
-            top: 70px;
-            left: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 10;
-            opacity: 0.7;
-        }
-        
-        .music-btn {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(75, 192, 192, 0.5);
-            color: rgba(255, 255, 255, 0.8);
-            padding: 8px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
-            min-width: 150px;
-            text-align: left;
-        }
-        
-        .music-btn:hover {
-            background: rgba(75, 192, 192, 0.2);
-            transform: scale(1.05);
-        }
-        
-        /* Visualizador de onda */
-        #wave-visualizer {
-            position: fixed;
-            bottom: 80px;
-            left: 20px;
-            width: 200px;
-            height: 60px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            z-index: 10;
-            opacity: 0.6;
-            overflow: hidden;
-        }
-        
-        #wave-canvas {
+            bottom: 100px;
+            left: 0;
             width: 100%;
-            height: 100%;
+            text-align: center;
+            color: rgba(210, 180, 140, 0.7);
+            font-size: 14px;
+            z-index: 10;
+            display: none;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 0 20px;
+            font-style: italic;
         }
         
-        /* Indicador de estado musical */
-        #music-status {
+        /* Indicadores de esquina - 50% transparente */
+        .corner-marker {
             position: fixed;
-            bottom: 150px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.4);
-            color: rgba(75, 192, 192, 0.8);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
+            width: 25px;
+            height: 25px;
+            border: 2px solid rgba(210, 180, 140, 0.3);
+            box-shadow: 0 0 8px rgba(210, 180, 140, 0.2);
             z-index: 10;
-            opacity: 0.7;
-            backdrop-filter: blur(5px);
+            display: none;
+        }
+        
+        #corner-tl {
+            top: 15px;
+            left: 15px;
+            border-right: none;
+            border-bottom: none;
+        }
+        
+        #corner-tr {
+            top: 15px;
+            right: 15px;
+            border-left: none;
+            border-bottom: none;
+        }
+        
+        #corner-bl {
+            bottom: 15px;
+            left: 15px;
+            border-right: none;
+            border-top: none;
+        }
+        
+        #corner-br {
+            bottom: 15px;
+            right: 15px;
+            border-left: none;
+            border-top: none;
         }
         
         /* Contenedor AR */
@@ -209,7 +203,7 @@
         #video-progress-bar {
             height: 100%;
             width: 0%;
-            background: rgba(75, 192, 192, 0.7);
+            background: rgba(210, 180, 140, 0.7);
             transition: width 0.1s linear;
         }
         
@@ -222,6 +216,7 @@
             color: rgba(255, 255, 255, 0.8);
             font-size: 48px;
             font-weight: bold;
+            font-style: italic;
             z-index: 25;
             opacity: 0;
             visibility: hidden;
@@ -229,7 +224,7 @@
             background: rgba(0, 0, 0, 0.4);
             padding: 20px 40px;
             border-radius: 10px;
-            border: 2px solid rgba(75, 192, 192, 0.3);
+            border: 2px solid rgba(210, 180, 140, 0.3);
         }
         
         #video-end-message.show {
@@ -237,26 +232,72 @@
             visibility: visible;
         }
         
-        /* Indicador de estado del video */
+        /* Indicador de estado */
         #video-status {
             position: fixed;
             bottom: 70px;
             left: 0;
             width: 100%;
             text-align: center;
-            color: rgba(75, 192, 192, 0.7);
+            color: rgba(210, 180, 140, 0.7);
             font-size: 12px;
             z-index: 10;
             display: none;
             background: rgba(0, 0, 0, 0.3);
             padding: 4px;
+            font-style: italic;
+        }
+        
+        /* Controles de audio */
+        #audio-controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+            opacity: 0.6;
+        }
+        
+        .audio-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(210, 180, 140, 0.4);
+            color: rgba(210, 180, 140, 0.8);
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .audio-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+        
+        /* Info música */
+        #music-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            color: rgba(210, 180, 140, 0.7);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-style: italic;
+            z-index: 10;
+            opacity: 0.6;
+            backdrop-filter: blur(5px);
         }
     </style>
 </head>
 <body>
     <!-- Pantalla de carga -->
     <div id="loading-overlay">
-        <div class="loading-text">Iniciando Sintetizador Musical...</div>
+        <div class="loading-text">Cargando Experiencia Clásica de Iguazú</div>
         <div class="progress-container">
             <div class="progress-bar" id="loading-bar"></div>
         </div>
@@ -268,28 +309,23 @@
         <img id="target-image" src="./target-preview.jpg" alt="Imán Iguazú">
     </div>
     
-    <!-- Controles de música -->
-    <div id="music-controls">
-        <button class="music-btn" onclick="toggleMusic()">🎵 Reproducir Música</button>
-        <button class="music-btn" onclick="changeInstrument('violin')">🎻 Modo Violín</button>
-        <button class="music-btn" onclick="changeInstrument('flute')">🎼 Modo Flauta</button>
-        <button class="music-btn" onclick="changeInstrument('harp')">🎵 Modo Arpa</button>
-        <button class="music-btn" onclick="changeEffect('reverb')">🎚️ Efecto: Reverberación</button>
-        <button class="music-btn" onclick="changeEffect('chorus')">🎚️ Efecto: Coro</button>
-        <button class="music-btn" onclick="toggleVisualization()">📊 Visualización</button>
+    <!-- Controles de audio -->
+    <div id="audio-controls">
+        <button class="audio-btn" id="play-music-btn" onclick="toggleMusic()">🎵 Reproducir Música</button>
+        <button class="audio-btn" id="volume-btn" onclick="toggleVolume()">🔊 Volumen</button>
     </div>
     
-    <!-- Visualizador de onda -->
-    <div id="wave-visualizer" style="display: none;">
-        <canvas id="wave-canvas"></canvas>
-    </div>
-    
-    <!-- Estado musical -->
-    <div id="music-status">Instrumento: Violín | Efecto: Reverberación</div>
+    <!-- Info música -->
+    <div id="music-info">🎻 Vivaldi - Las Cuatro Estaciones</div>
     
     <!-- Instrucciones -->
     <div class="instruction" id="instruction">
         🎯 Encuentre el imán de Iguazú para comenzar
+    </div>
+    
+    <!-- Mensaje de escaneo -->
+    <div class="scanning-message" id="scanning-message">
+        🔍 Escaneando...
     </div>
     
     <!-- Barra de progreso del video -->
@@ -302,6 +338,12 @@
     
     <!-- Mensaje "FIN" -->
     <div id="video-end-message">FIN</div>
+    
+    <!-- Indicadores de esquina -->
+    <div class="corner-marker" id="corner-tl"></div>
+    <div class="corner-marker" id="corner-tr"></div>
+    <div class="corner-marker" id="corner-bl"></div>
+    <div class="corner-marker" id="corner-br"></div>
     
     <!-- Contenedor AR -->
     <div id="ar-container">
@@ -327,6 +369,14 @@
                     crossorigin="anonymous"
                     preload="auto"
                 ></video>
+                
+                <!-- Música de Vivaldi - Primavera (Movimiento 1: Allegro) -->
+                <audio 
+                    id="vivaldi-music" 
+                    src="https://www.mfiles.co.uk/mp3-downloads/antonio-vivaldi-spring-allegro-from-four-seasons.mp3" 
+                    preload="auto"
+                    loop
+                ></audio>
             </a-assets>
             
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -344,346 +394,16 @@
     </div>
 
     <script>
-        // ============================
-        // SISTEMA DE AUDIO CON WEB AUDIO API
-        // ============================
-        
-        class VivaldiSynthesizer {
-            constructor() {
-                this.audioContext = null;
-                this.oscillators = [];
-                this.filters = [];
-                this.gainNodes = [];
-                this.isPlaying = false;
-                this.currentInstrument = 'violin';
-                this.currentEffect = 'reverb';
-                this.notesQueue = [];
-                this.bpm = 120;
-                this.analyser = null;
-                this.animationId = null;
-                this.visualizationActive = false;
-                this.reverbNode = null;
-                this.chorusNode = null;
-                
-                // Melodía simplificada de "Primavera" de Vivaldi
-                this.melody = [
-                    { note: 'E5', duration: 0.5 },
-                    { note: 'E5', duration: 0.5 },
-                    { note: 'F#5', duration: 0.5 },
-                    { note: 'G#5', duration: 0.5 },
-                    { note: 'B5', duration: 1 },
-                    { note: 'B5', duration: 0.5 },
-                    { note: 'A5', duration: 0.5 },
-                    { note: 'G#5', duration: 0.5 },
-                    { note: 'F#5', duration: 0.5 },
-                    { note: 'E5', duration: 1 },
-                    { note: 'E5', duration: 0.5 },
-                    { note: 'F#5', duration: 0.5 },
-                    { note: 'G#5', duration: 0.5 },
-                    { note: 'B5', duration: 1 },
-                    { note: 'B5', duration: 0.5 },
-                    { note: 'A5', duration: 0.5 },
-                    { note: 'G#5', duration: 0.5 },
-                    { note: 'F#5', duration: 0.5 },
-                    { note: 'E5', duration: 2 }
-                ];
-                
-                // Mapa de notas a frecuencias
-                this.noteFrequencies = {
-                    'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23,
-                    'F#4': 369.99, 'G4': 392.00, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
-                    'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25, 'F5': 698.46,
-                    'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.00, 'A#5': 932.33, 'B5': 987.77
-                };
-                
-                // Parámetros de instrumentos
-                this.instruments = {
-                    violin: {
-                        attack: 0.1,
-                        decay: 0.2,
-                        sustain: 0.7,
-                        release: 0.5,
-                        type: 'sawtooth',
-                        vibrato: 5,
-                        vibratoSpeed: 4
-                    },
-                    flute: {
-                        attack: 0.05,
-                        decay: 0.1,
-                        sustain: 0.8,
-                        release: 0.3,
-                        type: 'sine',
-                        vibrato: 3,
-                        vibratoSpeed: 3
-                    },
-                    harp: {
-                        attack: 0.02,
-                        decay: 0.1,
-                        sustain: 0.6,
-                        release: 0.4,
-                        type: 'triangle',
-                        vibrato: 2,
-                        vibratoSpeed: 2
-                    }
-                };
-                
-                this.init();
-            }
-            
-            init() {
-                try {
-                    // Crear contexto de audio
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    this.audioContext = new AudioContext();
-                    
-                    // Crear analizador para visualización
-                    this.analyser = this.audioContext.createAnalyser();
-                    this.analyser.fftSize = 2048;
-                    this.analyser.connect(this.audioContext.destination);
-                    
-                    // Inicializar efectos
-                    this.initEffects();
-                    
-                    console.log('🎵 Sintetizador Vivaldi inicializado');
-                } catch (error) {
-                    console.error('Error inicializando sintetizador:', error);
-                }
-            }
-            
-            initEffects() {
-                // Crear nodo de reverberación
-                this.reverbNode = this.audioContext.createConvolver();
-                const reverbBuffer = this.audioContext.createBuffer(2, this.audioContext.sampleRate * 2, this.audioContext.sampleRate);
-                for (let channel = 0; channel < reverbBuffer.numberOfChannels; channel++) {
-                    const channelData = reverbBuffer.getChannelData(channel);
-                    for (let i = 0; i < channelData.length; i++) {
-                        channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / channelData.length, 3);
-                    }
-                }
-                this.reverbNode.buffer = reverbBuffer;
-                
-                // Crear nodo de coro
-                this.chorusNode = this.audioContext.createDelay();
-                this.chorusNode.delayTime.value = 0.03;
-                
-                const chorusLFO = this.audioContext.createOscillator();
-                chorusLFO.frequency.value = 3;
-                const chorusDepth = this.audioContext.createGain();
-                chorusDepth.gain.value = 0.02;
-                
-                chorusLFO.connect(chorusDepth);
-                chorusDepth.connect(this.chorusNode.delayTime);
-                chorusLFO.start();
-            }
-            
-            noteToFrequency(note) {
-                return this.noteFrequencies[note] || 440;
-            }
-            
-            playNote(frequency, duration, time = 0) {
-                if (!this.audioContext || !this.isPlaying) return;
-                
-                const instrument = this.instruments[this.currentInstrument];
-                const now = this.audioContext.currentTime + time;
-                
-                // Crear oscilador principal
-                const oscillator = this.audioContext.createOscillator();
-                oscillator.type = instrument.type;
-                oscillator.frequency.value = frequency;
-                
-                // Crear oscilador para vibrato
-                const vibrato = this.audioContext.createOscillator();
-                vibrato.frequency.value = instrument.vibratoSpeed;
-                const vibratoGain = this.audioContext.createGain();
-                vibratoGain.gain.value = instrument.vibrato;
-                
-                vibrato.connect(vibratoGain);
-                vibratoGain.connect(oscillator.frequency);
-                vibrato.start(now);
-                vibrato.stop(now + duration);
-                
-                // Crear envolvente ADSR
-                const gainNode = this.audioContext.createGain();
-                const attackTime = instrument.attack;
-                const decayTime = instrument.decay;
-                const sustainLevel = instrument.sustain;
-                const releaseTime = instrument.release;
-                
-                // Aplicar envolvente
-                gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(1, now + attackTime);
-                gainNode.gain.exponentialRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
-                gainNode.gain.setValueAtTime(sustainLevel, now + duration - releaseTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
-                
-                // Conectar nodos
-                oscillator.connect(gainNode);
-                
-                // Aplicar efectos
-                if (this.currentEffect === 'reverb' && this.reverbNode) {
-                    gainNode.connect(this.reverbNode);
-                    this.reverbNode.connect(this.analyser);
-                    this.reverbNode.connect(this.audioContext.destination);
-                } else if (this.currentEffect === 'chorus' && this.chorusNode) {
-                    gainNode.connect(this.chorusNode);
-                    this.chorusNode.connect(this.analyser);
-                    this.chorusNode.connect(this.audioContext.destination);
-                } else {
-                    gainNode.connect(this.analyser);
-                    gainNode.connect(this.audioContext.destination);
-                }
-                
-                // Iniciar y detener oscilador
-                oscillator.start(now);
-                oscillator.stop(now + duration);
-                
-                // Guardar referencias
-                this.oscillators.push(oscillator);
-                this.gainNodes.push(gainNode);
-                
-                // Limpiar referencias después de que termine la nota
-                setTimeout(() => {
-                    const index = this.oscillators.indexOf(oscillator);
-                    if (index > -1) {
-                        this.oscillators.splice(index, 1);
-                        this.gainNodes.splice(index, 1);
-                    }
-                }, (duration + time) * 1000);
-            }
-            
-            playMelody() {
-                if (!this.isPlaying) return;
-                
-                let currentTime = 0;
-                this.melody.forEach((noteData, index) => {
-                    const frequency = this.noteToFrequency(noteData.note);
-                    const duration = (60 / this.bpm) * noteData.duration * 4; // Convertir a segundos
-                    
-                    setTimeout(() => {
-                        if (this.isPlaying) {
-                            this.playNote(frequency, duration * 0.9, 0);
-                        }
-                    }, currentTime * 1000);
-                    
-                    currentTime += duration;
-                });
-                
-                // Repetir la melodía
-                if (this.isPlaying) {
-                    setTimeout(() => {
-                        this.playMelody();
-                    }, currentTime * 1000);
-                }
-            }
-            
-            start() {
-                if (this.audioContext && !this.isPlaying) {
-                    // Reanudar contexto si está suspendido
-                    if (this.audioContext.state === 'suspended') {
-                        this.audioContext.resume();
-                    }
-                    
-                    this.isPlaying = true;
-                    this.playMelody();
-                    console.log('🎶 Música de Vivaldi iniciada');
-                }
-            }
-            
-            stop() {
-                this.isPlaying = false;
-                
-                // Detener todos los osciladores
-                this.oscillators.forEach(osc => {
-                    try { osc.stop(); } catch(e) {}
-                });
-                
-                // Limpiar arrays
-                this.oscillators = [];
-                this.gainNodes = [];
-                
-                console.log('⏸️ Música detenida');
-            }
-            
-            changeInstrument(instrument) {
-                if (this.instruments[instrument]) {
-                    this.currentInstrument = instrument;
-                    console.log(`🎻 Instrumento cambiado a: ${instrument}`);
-                    document.getElementById('music-status').textContent = 
-                        `Instrumento: ${instrument.charAt(0).toUpperCase() + instrument.slice(1)} | Efecto: ${this.currentEffect}`;
-                }
-            }
-            
-            changeEffect(effect) {
-                this.currentEffect = effect;
-                console.log(`🎚️ Efecto cambiado a: ${effect}`);
-                document.getElementById('music-status').textContent = 
-                    `Instrumento: ${this.currentInstrument.charAt(0).toUpperCase() + this.currentInstrument.slice(1)} | Efecto: ${effect}`;
-            }
-            
-            visualize(canvas) {
-                if (!this.analyser || !this.visualizationActive) return;
-                
-                const ctx = canvas.getContext('2d');
-                const width = canvas.width;
-                const height = canvas.height;
-                const bufferLength = this.analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                
-                const draw = () => {
-                    if (!this.visualizationActive) return;
-                    
-                    this.animationId = requestAnimationFrame(draw);
-                    
-                    this.analyser.getByteTimeDomainData(dataArray);
-                    
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-                    ctx.fillRect(0, 0, width, height);
-                    
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = 'rgba(75, 192, 192, 0.8)';
-                    ctx.beginPath();
-                    
-                    const sliceWidth = width * 1.0 / bufferLength;
-                    let x = 0;
-                    
-                    for (let i = 0; i < bufferLength; i++) {
-                        const v = dataArray[i] / 128.0;
-                        const y = v * height / 2;
-                        
-                        if (i === 0) {
-                            ctx.moveTo(x, y);
-                        } else {
-                            ctx.lineTo(x, y);
-                        }
-                        
-                        x += sliceWidth;
-                    }
-                    
-                    ctx.lineTo(width, height / 2);
-                    ctx.stroke();
-                };
-                
-                draw();
-            }
-            
-            stopVisualization() {
-                this.visualizationActive = false;
-                if (this.animationId) {
-                    cancelAnimationFrame(this.animationId);
-                }
-            }
-        }
-        
-        // ============================
-        // VARIABLES GLOBALES
-        // ============================
-        
+        // Variables globales
         let video = document.getElementById('ar-video');
+        let music = document.getElementById('vivaldi-music');
         let arTarget = document.getElementById('ar-target');
+        
         let loadingOverlay = document.getElementById('loading-overlay');
         let loadingBar = document.getElementById('loading-bar');
         let loadingText = document.getElementById('loading-text');
         let instruction = document.getElementById('instruction');
+        let scanningMessage = document.getElementById('scanning-message');
         let targetImageOverlay = document.getElementById('target-image-overlay');
         let targetImage = document.getElementById('target-image');
         let cornerMarkers = document.querySelectorAll('.corner-marker');
@@ -691,8 +411,8 @@
         let videoProgressContainer = document.getElementById('video-progress-container');
         let videoStatus = document.getElementById('video-status');
         let videoEndMessage = document.getElementById('video-end-message');
-        let waveCanvas = document.getElementById('wave-canvas');
-        let waveVisualizer = document.getElementById('wave-visualizer');
+        let playMusicBtn = document.getElementById('play-music-btn');
+        let volumeBtn = document.getElementById('volume-btn');
         
         let isVideoPlaying = false;
         let sceneInitialized = false;
@@ -700,14 +420,16 @@
         let scanAnimationInterval;
         let targetImageVisible = false;
         let videoEnded = false;
-        
-        // Crear sintetizador
-        const vivaldiSynthesizer = new VivaldiSynthesizer();
-        
+        let isMusicPlaying = false;
+        let musicVolume = 0.3;
+        let currentVolume = 0.3;
+
         // Configuración inicial
         video.loop = false;
         video.muted = true;
-        
+        music.volume = musicVolume;
+        music.loop = true;
+
         // Evento cuando el video se está cargando
         video.addEventListener('progress', function() {
             if (video.buffered.length > 0) {
@@ -719,12 +441,24 @@
                 }
             }
         });
-        
+
         // Evento cuando cambia el tiempo de reproducción del video
         video.addEventListener('timeupdate', function() {
             if (video.duration > 0) {
                 const percent = (video.currentTime / video.duration) * 100;
                 videoProgressBar.style.width = percent + '%';
+                
+                // Sincronizar volumen de música con progreso del video
+                if (isMusicPlaying) {
+                    // Aumentar volumen gradualmente al inicio
+                    if (percent < 10) {
+                        music.volume = Math.min(musicVolume, currentVolume * (percent / 10));
+                    }
+                    // Disminuir volumen gradualmente al final
+                    if (percent > 90) {
+                        music.volume = currentVolume * (1 - (percent - 90) / 10);
+                    }
+                }
                 
                 // Ocultar mensaje "FIN" si está visible y se reinicia
                 if (percent < 99 && videoEndMessage.classList.contains('show')) {
@@ -732,18 +466,18 @@
                 }
             }
         });
-        
+
         // Evento cuando el video termina
         video.addEventListener('ended', function() {
             console.log('✅ Video terminado');
             isVideoPlaying = false;
             videoEnded = true;
             
-            // Detener música
-            vivaldiSynthesizer.stop();
-            
             // Mostrar mensaje "FIN"
             showVideoEndMessage();
+            
+            // Disminuir música gradualmente
+            fadeOutMusic();
             
             // Ocultar elementos
             setTimeout(() => {
@@ -756,7 +490,7 @@
                 hideVideoEndMessage();
             }, 3000);
         });
-        
+
         // Evento cuando el video puede reproducirse completamente
         video.addEventListener('canplaythrough', function() {
             updateLoadingProgress(100);
@@ -768,7 +502,7 @@
                 showTargetImage();
             }, 500);
         });
-        
+
         // Eventos de MindAR
         arTarget.addEventListener('targetFound', function() {
             console.log('✅ Imán detectado');
@@ -778,6 +512,11 @@
                 videoEnded = false;
                 video.currentTime = 0;
                 hideVideoEndMessage();
+            }
+            
+            // Iniciar música si está configurada para reproducirse
+            if (isMusicPlaying) {
+                playMusic();
             }
             
             // Ocultar elementos de escaneo
@@ -799,12 +538,15 @@
             // Reproducir video
             playVideo();
         });
-        
+
         arTarget.addEventListener('targetLost', function() {
             console.log('❌ Imán perdido');
             
             // Pausar video si se está reproduciendo
             pauseVideo();
+            
+            // Pausar música
+            pauseMusic();
             
             // Ocultar elementos de reproducción
             videoProgressContainer.style.display = 'none';
@@ -829,7 +571,7 @@
                 }
             }, 500);
         });
-        
+
         // Inicializar escena
         document.querySelector('a-scene').addEventListener('renderstart', function() {
             console.log('🎬 MindAR iniciado');
@@ -837,36 +579,35 @@
             startScanningVisuals();
             showTargetImage();
             
-            // Precargar video
+            // Precargar video y música
             video.load();
+            music.load();
         });
-        
-        // ============================
-        // FUNCIONES DE CONTROL
-        // ============================
-        
+
+        // Funciones para mostrar/ocultar elementos
         function showTargetImage() {
             if (!targetImageVisible) {
                 targetImageOverlay.classList.add('show');
                 targetImageVisible = true;
             }
         }
-        
+
         function hideTargetImage() {
             if (targetImageVisible) {
                 targetImageOverlay.classList.remove('show');
                 targetImageVisible = false;
             }
         }
-        
+
         function showVideoEndMessage() {
             videoEndMessage.classList.add('show');
         }
-        
+
         function hideVideoEndMessage() {
             videoEndMessage.classList.remove('show');
         }
-        
+
+        // Función para iniciar efectos visuales de escaneo
         function startScanningVisuals() {
             isScanning = true;
             
@@ -878,11 +619,11 @@
             // Efecto de pulsación en las esquinas
             scanAnimationInterval = setInterval(() => {
                 cornerMarkers.forEach(marker => {
-                    marker.style.boxShadow = `0 0 ${8 + Math.random() * 8}px rgba(75, 192, 192, 0.2)`;
+                    marker.style.boxShadow = `0 0 ${8 + Math.random() * 8}px rgba(210, 180, 140, 0.2)`;
                 });
             }, 2000);
         }
-        
+
         function stopScanningVisuals() {
             isScanning = false;
             
@@ -896,79 +637,110 @@
                 clearInterval(scanAnimationInterval);
             }
         }
-        
+
+        // Función para actualizar la barra de carga
         function updateLoadingProgress(percent) {
             const roundedPercent = Math.min(100, Math.round(percent));
             loadingBar.style.width = roundedPercent + '%';
             loadingText.textContent = roundedPercent + '% cargado';
         }
-        
+
+        // Funciones de control de video
         function playVideo() {
             if (video.paused && !videoEnded) {
                 video.play()
                     .then(() => {
                         isVideoPlaying = true;
                         console.log('▶ Video reproduciéndose');
-                        
-                        // Iniciar música si no está reproduciéndose
-                        if (!vivaldiSynthesizer.isPlaying) {
-                            vivaldiSynthesizer.start();
-                        }
                     })
                     .catch(e => {
                         console.error('Error al reproducir:', e);
                     });
             }
         }
-        
+
         function pauseVideo() {
             if (!video.paused) {
                 video.pause();
                 isVideoPlaying = false;
                 console.log('⏸ Video pausado');
-                
-                // Pausar música
-                vivaldiSynthesizer.stop();
             }
         }
-        
+
+        // Funciones de control de música
         function toggleMusic() {
-            if (vivaldiSynthesizer.isPlaying) {
-                vivaldiSynthesizer.stop();
-                document.querySelector('.music-btn').textContent = '🎵 Reproducir Música';
+            if (isMusicPlaying) {
+                pauseMusic();
+                playMusicBtn.textContent = '🎵 Reproducir Música';
             } else {
-                vivaldiSynthesizer.start();
-                document.querySelector('.music-btn').textContent = '⏸ Pausar Música';
+                isMusicPlaying = true;
+                playMusicBtn.textContent = '⏸ Pausar Música';
+                
+                // Solo reproducir si hay video activo
+                if (isVideoPlaying) {
+                    playMusic();
+                }
             }
         }
-        
-        function changeInstrument(instrument) {
-            vivaldiSynthesizer.changeInstrument(instrument);
+
+        function playMusic() {
+            if (music.paused && isMusicPlaying) {
+                music.currentTime = 0;
+                music.volume = currentVolume;
+                music.play()
+                    .then(() => {
+                        console.log('🎻 Música de Vivaldi reproduciéndose');
+                    })
+                    .catch(e => {
+                        console.log('⚠️ No se pudo reproducir la música:', e);
+                    });
+            }
         }
-        
-        function changeEffect(effect) {
-            vivaldiSynthesizer.changeEffect(effect);
+
+        function pauseMusic() {
+            if (!music.paused) {
+                music.pause();
+                console.log('⏸ Música pausada');
+            }
         }
-        
-        function toggleVisualization() {
-            vivaldiSynthesizer.visualizationActive = !vivaldiSynthesizer.visualizationActive;
+
+        function fadeOutMusic() {
+            if (!isMusicPlaying) return;
             
-            if (vivaldiSynthesizer.visualizationActive) {
-                waveVisualizer.style.display = 'block';
-                waveCanvas.width = waveVisualizer.clientWidth;
-                waveCanvas.height = waveVisualizer.clientHeight;
-                vivaldiSynthesizer.visualize(waveCanvas);
+            let fadeVolume = currentVolume;
+            const fadeInterval = setInterval(() => {
+                if (fadeVolume > 0.1) {
+                    fadeVolume -= 0.02;
+                    music.volume = fadeVolume;
+                } else {
+                    clearInterval(fadeInterval);
+                    pauseMusic();
+                }
+            }, 100);
+        }
+
+        function toggleVolume() {
+            if (currentVolume === 0.3) {
+                currentVolume = 0.6;
+                volumeBtn.textContent = '🔊 Volumen Alto';
+            } else if (currentVolume === 0.6) {
+                currentVolume = 0.1;
+                volumeBtn.textContent = '🔈 Volumen Bajo';
             } else {
-                waveVisualizer.style.display = 'none';
-                vivaldiSynthesizer.stopVisualization();
+                currentVolume = 0.3;
+                volumeBtn.textContent = '🔊 Volumen';
+            }
+            
+            if (!music.paused) {
+                music.volume = currentVolume;
             }
         }
-        
-        // Manejar cambio de pestaña
+
+        // Manejar pausa automática cuando se cambia de pestaña
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 pauseVideo();
-                vivaldiSynthesizer.stop();
+                pauseMusic();
                 stopScanningVisuals();
                 hideTargetImage();
                 hideVideoEndMessage();
@@ -978,12 +750,12 @@
                 showTargetImage();
             }
         });
-        
+
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Experiencia AR Musical iniciada');
+            console.log('🚀 Experiencia Clásica de Iguazú iniciada');
             
-            // Precargar video
+            // Precargar recursos
             video.load();
             
             // Configurar el mensaje de escaneo para cambiar cada 3 segundos
@@ -991,18 +763,21 @@
                 if (scanningMessage.style.display === 'block') {
                     const messages = [
                         '🔍 Escaneando...',
-                        '🎵 Sintetizando Vivaldi...',
-                        '🎻 Preparando instrumentos...',
-                        '🌿 Conectando con la naturaleza...'
+                        '🎵 Buscando armonía...',
+                        '🎻 Sintonizando la naturaleza...',
+                        '🌿 Conectando con Iguazú...'
                     ];
                     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
                     scanningMessage.textContent = randomMessage;
                 }
             }, 3000);
             
-            // Inicializar canvas
-            waveCanvas.width = waveVisualizer.clientWidth;
-            waveCanvas.height = waveVisualizer.clientHeight;
+            // Efecto de carga elegante
+            setTimeout(() => {
+                if (!sceneInitialized) {
+                    loadingText.textContent = "Preparando Las Cuatro Estaciones...";
+                }
+            }, 2000);
         });
     </script>
 </body>
