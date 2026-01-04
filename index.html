@@ -142,26 +142,104 @@
             background: rgba(41, 128, 185, 0.9);
         }
         
-        /* Indicador de tracking */
-        .tracking-indicator {
+        /* Personalización de las líneas de escaneo de MindAR */
+        .mindar-ui-overlay {
+            z-index: 5 !important;
+        }
+        
+        .scanning-line {
+            background: linear-gradient(to bottom, transparent, #00ff88, transparent) !important;
+            animation: scanAnimation 2s infinite linear !important;
+            box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88 !important;
+        }
+        
+        @keyframes scanAnimation {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        
+        /* Mensaje de escaneo personalizado */
+        .scanning-message {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 25px;
-            border-radius: 10px;
-            display: none;
-            z-index: 10;
+            bottom: 100px;
+            left: 0;
+            width: 100%;
             text-align: center;
+            color: #00ff88;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.7);
+            z-index: 10;
+            display: none;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 0 20px;
+        }
+        
+        /* Indicadores de esquina para tracking */
+        .corner-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+            z-index: 10;
+            display: none;
+        }
+        
+        #corner-tl {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+        
+        #corner-tr {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+        }
+        
+        #corner-bl {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+        }
+        
+        #corner-br {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }
+        
+        /* Puntos de tracking */
+        .tracking-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ff3366;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff3366;
+            z-index: 10;
+            display: none;
+            animation: pulse 1s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(1.5); opacity: 0.5; }
         }
     </style>
 </head>
 <body>
     <!-- Pantalla de carga -->
     <div id="loading-overlay">
-        <div class="loading-text">Cargando Experiencia AR...</div>
+        <div class="loading-text">Cargando Experiencia AR de Iguazú...</div>
         <div class="progress-container">
             <div class="progress-bar" id="loading-bar"></div>
         </div>
@@ -173,20 +251,32 @@
         📍 Apunta la cámara al imán de Iguazú
     </div>
     
+    <!-- Mensaje de escaneo personalizado -->
+    <div class="scanning-message" id="scanning-message">
+        ⚡ ESCANEANDO IMÁN... Mantén estable la cámara
+    </div>
+    
+    <!-- Indicadores de esquina -->
+    <div class="corner-marker" id="corner-tl"></div>
+    <div class="corner-marker" id="corner-tr"></div>
+    <div class="corner-marker" id="corner-bl"></div>
+    <div class="corner-marker" id="corner-br"></div>
+    
+    <!-- Puntos de tracking -->
+    <div class="tracking-dot" id="tracking-dot-1"></div>
+    <div class="tracking-dot" id="tracking-dot-2"></div>
+    <div class="tracking-dot" id="tracking-dot-3"></div>
+    <div class="tracking-dot" id="tracking-dot-4"></div>
+    
     <!-- Barra de progreso del video -->
     <div id="video-progress-container">
         <div id="video-progress-bar"></div>
     </div>
     
-    <!-- Indicador de tracking -->
-    <div class="tracking-indicator" id="tracking-indicator">
-        🔍 Buscando imán...
-    </div>
-    
     <!-- Contenedor AR -->
     <div id="ar-container">
         <a-scene 
-            mindar-image="imageTargetSrc: ./marker.mind; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;" 
+            mindar-image="imageTargetSrc: ./marker.mind; autoStart: true; uiLoading: yes; uiScanning: yes; uiError: yes; filterMinCF: 0.0001; filterBeta: 0.001;" 
             vr-mode-ui="enabled: false" 
             device-orientation-permission-ui="enabled: false"
             loading-screen="enabled: false"
@@ -235,12 +325,16 @@
         let loadingText = document.getElementById('loading-text');
         let videoProgressBar = document.getElementById('video-progress-bar');
         let videoProgressContainer = document.getElementById('video-progress-container');
-        let trackingIndicator = document.getElementById('tracking-indicator');
         let instruction = document.getElementById('instruction');
         let videoControls = document.getElementById('video-controls');
         let playBtn = document.getElementById('play-btn');
+        let scanningMessage = document.getElementById('scanning-message');
+        let cornerMarkers = document.querySelectorAll('.corner-marker');
+        let trackingDots = document.querySelectorAll('.tracking-dot');
         let isVideoPlaying = false;
         let sceneInitialized = false;
+        let isScanning = false;
+        let scanAnimationInterval;
 
         // Evento cuando el video se está cargando
         video.addEventListener('progress', function() {
@@ -261,6 +355,7 @@
                 loadingOverlay.style.display = 'none';
                 sceneInitialized = true;
                 instruction.style.display = 'block';
+                startScanningVisuals();
             }, 500);
         });
 
@@ -275,8 +370,10 @@
         // Eventos de MindAR
         arTarget.addEventListener('targetFound', function() {
             console.log('✅ Imán detectado');
-            trackingIndicator.style.display = 'none';
             instruction.style.display = 'none';
+            scanningMessage.style.display = 'none';
+            stopScanningVisuals();
+            hideTrackingDots();
             
             // Mostrar controles y barra de progreso
             videoControls.classList.add('show');
@@ -288,23 +385,111 @@
 
         arTarget.addEventListener('targetLost', function() {
             console.log('❌ Imán perdido');
-            trackingIndicator.style.display = 'block';
-            instruction.style.display = 'none';
+            instruction.style.display = 'block';
             videoControls.classList.remove('show');
             videoProgressContainer.style.display = 'none';
             
             // Pausar video
             pauseVideo();
+            
+            // Reiniciar escaneo visual
+            setTimeout(() => {
+                if (!isScanning) {
+                    startScanningVisuals();
+                    scanningMessage.style.display = 'block';
+                }
+            }, 500);
         });
 
-        // Inicializar indicador de tracking
+        // Inicializar escena
         document.querySelector('a-scene').addEventListener('renderstart', function() {
             console.log('🎬 MindAR iniciado');
-            trackingIndicator.style.display = 'block';
+            scanningMessage.style.display = 'block';
+            startScanningVisuals();
             
             // Precargar video
             video.load();
         });
+
+        // Función para iniciar efectos visuales de escaneo
+        function startScanningVisuals() {
+            isScanning = true;
+            
+            // Mostrar marcadores de esquina
+            cornerMarkers.forEach(marker => {
+                marker.style.display = 'block';
+            });
+            
+            // Mostrar puntos de tracking con animación
+            showTrackingDots();
+            
+            // Efecto de pulsación en las esquinas
+            scanAnimationInterval = setInterval(() => {
+                cornerMarkers.forEach(marker => {
+                    marker.style.boxShadow = `0 0 ${10 + Math.random() * 10}px #00ff88`;
+                });
+                
+                // Mover puntos de tracking aleatoriamente
+                moveTrackingDots();
+            }, 2000);
+        }
+
+        function stopScanningVisuals() {
+            isScanning = false;
+            
+            // Ocultar marcadores de esquina
+            cornerMarkers.forEach(marker => {
+                marker.style.display = 'none';
+            });
+            
+            // Ocultar puntos de tracking
+            hideTrackingDots();
+            
+            // Detener animación
+            if (scanAnimationInterval) {
+                clearInterval(scanAnimationInterval);
+            }
+        }
+
+        function showTrackingDots() {
+            trackingDots.forEach((dot, index) => {
+                dot.style.display = 'block';
+                // Posiciones iniciales aleatorias
+                const x = 20 + Math.random() * (window.innerWidth - 40);
+                const y = 20 + Math.random() * (window.innerHeight - 40);
+                dot.style.left = `${x}px`;
+                dot.style.top = `${y}px`;
+                // Retraso en la animación para efecto escalonado
+                dot.style.animationDelay = `${index * 0.3}s`;
+            });
+        }
+
+        function hideTrackingDots() {
+            trackingDots.forEach(dot => {
+                dot.style.display = 'none';
+            });
+        }
+
+        function moveTrackingDots() {
+            trackingDots.forEach(dot => {
+                if (dot.style.display === 'block') {
+                    const currentX = parseInt(dot.style.left) || 0;
+                    const currentY = parseInt(dot.style.top) || 0;
+                    
+                    // Movimiento suave hacia nueva posición
+                    const newX = Math.max(20, Math.min(window.innerWidth - 32, currentX + (Math.random() * 100 - 50)));
+                    const newY = Math.max(20, Math.min(window.innerHeight - 32, currentY + (Math.random() * 100 - 50)));
+                    
+                    dot.style.transition = 'left 1s ease, top 1s ease';
+                    dot.style.left = `${newX}px`;
+                    dot.style.top = `${newY}px`;
+                    
+                    // Cambiar color aleatoriamente
+                    const colors = ['#ff3366', '#00ff88', '#3366ff', '#ffcc00'];
+                    dot.style.background = colors[Math.floor(Math.random() * colors.length)];
+                }
+            });
+        }
 
         // Función para actualizar la barra de carga
         function updateLoadingProgress(percent) {
@@ -388,6 +573,17 @@
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 pauseVideo();
+                stopScanningVisuals();
+            } else if (sceneInitialized && !isVideoPlaying) {
+                startScanningVisuals();
+                scanningMessage.style.display = 'block';
+            }
+        });
+
+        // Ajustar visuales al cambiar tamaño de ventana
+        window.addEventListener('resize', function() {
+            if (isScanning) {
+                moveTrackingDots();
             }
         });
 
@@ -397,6 +593,20 @@
             
             // Precargar el video inmediatamente
             video.load();
+            
+            // Configurar el mensaje de escaneo para cambiar cada 3 segundos
+            setInterval(() => {
+                if (scanningMessage.style.display === 'block') {
+                    const messages = [
+                        '⚡ ESCANEANDO IMÁN... Mantén estable la cámara',
+                        '🔍 BUSCANDO PATRÓN... Acerca el imán',
+                        '📱 ALINEANDO... Mueve lentamente',
+                        '✨ DETECTANDO... Enfoca bien el imán'
+                    ];
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    scanningMessage.textContent = randomMessage;
+                }
+            }, 3000);
         });
     </script>
 </body>
