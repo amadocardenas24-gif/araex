@@ -2,34 +2,402 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Video Experience</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Iguazú AR Experience</title>
+    
+    <!-- A-Frame y MindAR -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const arTarget = document.querySelector('#ar-target');
-            const video = document.querySelector('#ar-video');
-            arTarget.addEventListener('targetFound', () => { video.play().catch(e => console.error("Video play failed", e)); });
-            arTarget.addEventListener('targetLost', () => { video.pause(); });
-        });
-    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Pantalla de carga */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+        }
+        
+        .loading-text {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        
+        /* Barra de progreso */
+        .progress-container {
+            width: 80%;
+            max-width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .progress-text {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #95a5a6;
+        }
+        
+        /* Contenedor principal */
+        #ar-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* Instrucciones */
+        .instruction {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            z-index: 10;
+            font-size: 14px;
+        }
+        
+        /* Barra de progreso del video */
+        #video-progress-container {
+            position: absolute;
+            bottom: 20px;
+            left: 10%;
+            width: 80%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+            z-index: 10;
+        }
+        
+        #video-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #3498db;
+            transition: width 0.1s linear;
+        }
+        
+        /* Controles de video */
+        .video-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .video-controls.show {
+            opacity: 1;
+        }
+        
+        .control-btn {
+            background: rgba(52, 152, 219, 0.8);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(41, 128, 185, 0.9);
+        }
+        
+        /* Indicador de tracking */
+        .tracking-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: none;
+            z-index: 10;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <a-scene mindar-image="imageTargetSrc: ./marker.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" renderer="colorManagement: true;">
-        <a-assets>
-            <video id="ar-video" src="./asset.mp4" loop muted playsinline crossorigin="anonymous"></video>
-        </a-assets>
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
-            <a-plane
-                src="#ar-video"
-                position="0 0 0"
-                rotation="0 0 0"
-                height="1"
-                width="1.8076923076923077"
-            ></a-plane>
-        </a-entity>
-    </a-scene>
+    <!-- Pantalla de carga -->
+    <div id="loading-overlay">
+        <div class="loading-text">Cargando Experiencia AR...</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="loading-bar"></div>
+        </div>
+        <div class="progress-text" id="loading-text">0%</div>
+    </div>
+    
+    <!-- Instrucciones -->
+    <div class="instruction" id="instruction">
+        📍 Apunta la cámara al imán de Iguazú
+    </div>
+    
+    <!-- Barra de progreso del video -->
+    <div id="video-progress-container">
+        <div id="video-progress-bar"></div>
+    </div>
+    
+    <!-- Indicador de tracking -->
+    <div class="tracking-indicator" id="tracking-indicator">
+        🔍 Buscando imán...
+    </div>
+    
+    <!-- Contenedor AR -->
+    <div id="ar-container">
+        <a-scene 
+            mindar-image="imageTargetSrc: ./marker.mind; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;" 
+            vr-mode-ui="enabled: false" 
+            device-orientation-permission-ui="enabled: false"
+            loading-screen="enabled: false"
+            renderer="colorManagement: true;"
+            embedded
+        >
+            <a-assets>
+                <video 
+                    id="ar-video" 
+                    src="./asset.mp4" 
+                    loop 
+                    muted 
+                    playsinline 
+                    crossorigin="anonymous"
+                    preload="auto"
+                ></video>
+            </a-assets>
+            
+            <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse"></a-camera>
+            
+            <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
+                <a-plane
+                    src="#ar-video"
+                    position="0 0 0"
+                    rotation="0 0 0"
+                    height="1"
+                    width="1.8076923076923077"
+                ></a-plane>
+            </a-entity>
+        </a-scene>
+    </div>
+    
+    <!-- Controles de video (inicialmente ocultos) -->
+    <div class="video-controls" id="video-controls">
+        <button class="control-btn" id="play-btn" onclick="togglePlay()">⏸ Pausa</button>
+        <button class="control-btn" id="replay-btn" onclick="replayVideo()">↺ Reiniciar</button>
+        <button class="control-btn" onclick="showInstructions()">❓ Ayuda</button>
+    </div>
+
+    <script>
+        // Variables globales
+        let video = document.getElementById('ar-video');
+        let arTarget = document.getElementById('ar-target');
+        let loadingOverlay = document.getElementById('loading-overlay');
+        let loadingBar = document.getElementById('loading-bar');
+        let loadingText = document.getElementById('loading-text');
+        let videoProgressBar = document.getElementById('video-progress-bar');
+        let videoProgressContainer = document.getElementById('video-progress-container');
+        let trackingIndicator = document.getElementById('tracking-indicator');
+        let instruction = document.getElementById('instruction');
+        let videoControls = document.getElementById('video-controls');
+        let playBtn = document.getElementById('play-btn');
+        let isVideoPlaying = false;
+        let sceneInitialized = false;
+
+        // Evento cuando el video se está cargando
+        video.addEventListener('progress', function() {
+            if (video.buffered.length > 0) {
+                const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+                const duration = video.duration;
+                if (duration > 0) {
+                    const percent = (bufferedEnd / duration) * 100;
+                    updateLoadingProgress(percent);
+                }
+            }
+        });
+
+        // Evento cuando el video puede reproducirse completamente
+        video.addEventListener('canplaythrough', function() {
+            updateLoadingProgress(100);
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+                sceneInitialized = true;
+                instruction.style.display = 'block';
+            }, 500);
+        });
+
+        // Evento cuando cambia el tiempo de reproducción del video
+        video.addEventListener('timeupdate', function() {
+            if (video.duration > 0) {
+                const percent = (video.currentTime / video.duration) * 100;
+                videoProgressBar.style.width = percent + '%';
+            }
+        });
+
+        // Eventos de MindAR
+        arTarget.addEventListener('targetFound', function() {
+            console.log('✅ Imán detectado');
+            trackingIndicator.style.display = 'none';
+            instruction.style.display = 'none';
+            
+            // Mostrar controles y barra de progreso
+            videoControls.classList.add('show');
+            videoProgressContainer.style.display = 'block';
+            
+            // Reproducir video
+            playVideo();
+        });
+
+        arTarget.addEventListener('targetLost', function() {
+            console.log('❌ Imán perdido');
+            trackingIndicator.style.display = 'block';
+            instruction.style.display = 'none';
+            videoControls.classList.remove('show');
+            videoProgressContainer.style.display = 'none';
+            
+            // Pausar video
+            pauseVideo();
+        });
+
+        // Inicializar indicador de tracking
+        document.querySelector('a-scene').addEventListener('renderstart', function() {
+            console.log('🎬 MindAR iniciado');
+            trackingIndicator.style.display = 'block';
+            
+            // Precargar video
+            video.load();
+        });
+
+        // Función para actualizar la barra de carga
+        function updateLoadingProgress(percent) {
+            const roundedPercent = Math.min(100, Math.round(percent));
+            loadingBar.style.width = roundedPercent + '%';
+            loadingText.textContent = roundedPercent + '% cargado';
+        }
+
+        // Funciones de control de video
+        function playVideo() {
+            if (video.paused) {
+                video.play()
+                    .then(() => {
+                        isVideoPlaying = true;
+                        playBtn.innerHTML = '⏸ Pausa';
+                    })
+                    .catch(e => {
+                        console.error('Error al reproducir:', e);
+                        // Si falla el autoplay, mostrar botón manual
+                        showPlayButton();
+                    });
+            }
+        }
+
+        function pauseVideo() {
+            if (!video.paused) {
+                video.pause();
+                isVideoPlaying = false;
+                playBtn.innerHTML = '▶ Reproducir';
+            }
+        }
+
+        function togglePlay() {
+            if (video.paused) {
+                playVideo();
+            } else {
+                pauseVideo();
+            }
+        }
+
+        function replayVideo() {
+            video.currentTime = 0;
+            if (isVideoPlaying) {
+                video.play();
+            }
+        }
+
+        // Función para mostrar botón de play si falla autoplay
+        function showPlayButton() {
+            const playButton = document.createElement('button');
+            playButton.innerHTML = '▶ Reproducir Video';
+            playButton.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(52, 152, 219, 0.9);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 25px;
+                font-size: 16px;
+                cursor: pointer;
+                z-index: 1000;
+            `;
+            
+            playButton.onclick = function() {
+                playVideo();
+                this.remove();
+            };
+            
+            document.getElementById('ar-container').appendChild(playButton);
+        }
+
+        // Función de ayuda
+        function showInstructions() {
+            alert('INSTRUCCIONES:\n\n1. Apunta la cámara al imán de Iguazú\n2. Mantén estable para activar el video\n3. Aleja el imán para pausar\n4. Usa los botones para controlar la reproducción');
+        }
+
+        // Manejar pausa automática cuando se cambia de pestaña
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                pauseVideo();
+            }
+        });
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Iguazú AR Experience inicializado');
+            
+            // Precargar el video inmediatamente
+            video.load();
+        });
+    </script>
 </body>
 </html>
