@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iguazú AR - Vivaldi Experience</title>
+    <title>Experiencia AR Iguazú</title>
     
     <!-- A-Frame y MindAR -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -19,7 +19,7 @@
         body {
             overflow: hidden;
             background: #000;
-            font-family: 'Georgia', serif;
+            font-family: Arial, sans-serif;
             width: 100vw;
             height: 100vh;
         }
@@ -44,7 +44,7 @@
             margin-bottom: 20px;
             font-size: 18px;
             text-align: center;
-            opacity: 0.7;
+            opacity: 0.8;
         }
         
         .progress-container {
@@ -58,7 +58,7 @@
         
         .progress-bar {
             height: 20px;
-            background: rgba(210, 180, 140, 0.6); /* Color sepia */
+            background: rgba(52, 152, 219, 0.6);
             width: 0%;
             transition: width 0.3s ease;
             border-radius: 10px;
@@ -79,9 +79,9 @@
             width: 200px;
             height: 200px;
             background: rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(210, 180, 140, 0.4);
+            border: 2px solid rgba(52, 152, 219, 0.4);
             border-radius: 8px;
-            box-shadow: 0 0 20px rgba(210, 180, 140, 0.2);
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.2);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -103,7 +103,6 @@
             max-height: 90%;
             border-radius: 6px;
             opacity: 0.6;
-            filter: sepia(0.3);
         }
         
         /* Instrucciones - 50% transparente */
@@ -113,13 +112,12 @@
             left: 0;
             width: 100%;
             text-align: center;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.8);
             background: rgba(0, 0, 0, 0.4);
-            padding: 12px;
+            padding: 10px;
             z-index: 10;
-            font-size: 15px;
-            font-style: italic;
-            border-bottom: 1px solid rgba(210, 180, 140, 0.3);
+            font-size: 14px;
+            border-bottom: 1px solid rgba(52, 152, 219, 0.3);
         }
         
         /* Mensaje de escaneo - 50% transparente */
@@ -129,61 +127,14 @@
             left: 0;
             width: 100%;
             text-align: center;
-            color: rgba(210, 180, 140, 0.7);
+            color: rgba(52, 152, 219, 0.8);
             font-size: 14px;
             z-index: 10;
             display: none;
             background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
+            padding: 8px;
             border-radius: 6px;
             margin: 0 20px;
-            font-style: italic;
-        }
-        
-        /* Indicadores de esquina - 50% transparente */
-        .corner-marker {
-            position: fixed;
-            width: 25px;
-            height: 25px;
-            border: 2px solid rgba(210, 180, 140, 0.3);
-            box-shadow: 0 0 8px rgba(210, 180, 140, 0.2);
-            z-index: 10;
-            display: none;
-        }
-        
-        #corner-tl {
-            top: 15px;
-            left: 15px;
-            border-right: none;
-            border-bottom: none;
-        }
-        
-        #corner-tr {
-            top: 15px;
-            right: 15px;
-            border-left: none;
-            border-bottom: none;
-        }
-        
-        #corner-bl {
-            bottom: 15px;
-            left: 15px;
-            border-right: none;
-            border-top: none;
-        }
-        
-        #corner-br {
-            bottom: 15px;
-            right: 15px;
-            border-left: none;
-            border-top: none;
-        }
-        
-        /* Contenedor AR */
-        #ar-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
         }
         
         /* Barra de progreso del video */
@@ -203,7 +154,7 @@
         #video-progress-bar {
             height: 100%;
             width: 0%;
-            background: rgba(210, 180, 140, 0.7);
+            background: rgba(52, 152, 219, 0.7);
             transition: width 0.1s linear;
         }
         
@@ -216,7 +167,6 @@
             color: rgba(255, 255, 255, 0.8);
             font-size: 48px;
             font-weight: bold;
-            font-style: italic;
             z-index: 25;
             opacity: 0;
             visibility: hidden;
@@ -224,7 +174,7 @@
             background: rgba(0, 0, 0, 0.4);
             padding: 20px 40px;
             border-radius: 10px;
-            border: 2px solid rgba(210, 180, 140, 0.3);
+            border: 2px solid rgba(52, 152, 219, 0.3);
         }
         
         #video-end-message.show {
@@ -239,65 +189,26 @@
             left: 0;
             width: 100%;
             text-align: center;
-            color: rgba(210, 180, 140, 0.7);
+            color: rgba(52, 152, 219, 0.7);
             font-size: 12px;
             z-index: 10;
             display: none;
             background: rgba(0, 0, 0, 0.3);
             padding: 4px;
-            font-style: italic;
         }
         
-        /* Controles de audio */
-        #audio-controls {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 10;
-            opacity: 0.6;
-        }
-        
-        .audio-btn {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(210, 180, 140, 0.4);
-            color: rgba(210, 180, 140, 0.8);
-            padding: 8px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-        
-        .audio-btn:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
-        }
-        
-        /* Info música */
-        #music-info {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.4);
-            color: rgba(210, 180, 140, 0.7);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-style: italic;
-            z-index: 10;
-            opacity: 0.6;
-            backdrop-filter: blur(5px);
+        /* Contenedor AR */
+        #ar-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
         }
     </style>
 </head>
 <body>
     <!-- Pantalla de carga -->
     <div id="loading-overlay">
-        <div class="loading-text">Cargando Experiencia Clásica de Iguazú</div>
+        <div class="loading-text">Cargando Experiencia AR de Iguazú</div>
         <div class="progress-container">
             <div class="progress-bar" id="loading-bar"></div>
         </div>
@@ -309,23 +220,14 @@
         <img id="target-image" src="./target-preview.jpg" alt="Imán Iguazú">
     </div>
     
-    <!-- Controles de audio -->
-    <div id="audio-controls">
-        <button class="audio-btn" id="play-music-btn" onclick="toggleMusic()">🎵 Reproducir Música</button>
-        <button class="audio-btn" id="volume-btn" onclick="toggleVolume()">🔊 Volumen</button>
-    </div>
-    
-    <!-- Info música -->
-    <div id="music-info">🎻 Vivaldi - Las Cuatro Estaciones</div>
-    
     <!-- Instrucciones -->
     <div class="instruction" id="instruction">
-        🎯 Encuentre el imán de Iguazú para comenzar
+        📍 Apunte la cámara al imán de Iguazú
     </div>
     
     <!-- Mensaje de escaneo -->
     <div class="scanning-message" id="scanning-message">
-        🔍 Escaneando...
+        ⚡ Escaneando...
     </div>
     
     <!-- Barra de progreso del video -->
@@ -338,12 +240,6 @@
     
     <!-- Mensaje "FIN" -->
     <div id="video-end-message">FIN</div>
-    
-    <!-- Indicadores de esquina -->
-    <div class="corner-marker" id="corner-tl"></div>
-    <div class="corner-marker" id="corner-tr"></div>
-    <div class="corner-marker" id="corner-bl"></div>
-    <div class="corner-marker" id="corner-br"></div>
     
     <!-- Contenedor AR -->
     <div id="ar-container">
@@ -360,7 +256,7 @@
             embedded
         >
             <a-assets>
-                <!-- Video -->
+                <!-- Video sin loop y sin audio -->
                 <video 
                     id="ar-video" 
                     src="./asset.mp4" 
@@ -369,14 +265,6 @@
                     crossorigin="anonymous"
                     preload="auto"
                 ></video>
-                
-                <!-- Música de Vivaldi - Primavera (Movimiento 1: Allegro) -->
-                <audio 
-                    id="vivaldi-music" 
-                    src="https://www.mfiles.co.uk/mp3-downloads/antonio-vivaldi-spring-allegro-from-four-seasons.mp3" 
-                    preload="auto"
-                    loop
-                ></audio>
             </a-assets>
             
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -396,9 +284,7 @@
     <script>
         // Variables globales
         let video = document.getElementById('ar-video');
-        let music = document.getElementById('vivaldi-music');
         let arTarget = document.getElementById('ar-target');
-        
         let loadingOverlay = document.getElementById('loading-overlay');
         let loadingBar = document.getElementById('loading-bar');
         let loadingText = document.getElementById('loading-text');
@@ -406,29 +292,19 @@
         let scanningMessage = document.getElementById('scanning-message');
         let targetImageOverlay = document.getElementById('target-image-overlay');
         let targetImage = document.getElementById('target-image');
-        let cornerMarkers = document.querySelectorAll('.corner-marker');
         let videoProgressBar = document.getElementById('video-progress-bar');
         let videoProgressContainer = document.getElementById('video-progress-container');
         let videoStatus = document.getElementById('video-status');
         let videoEndMessage = document.getElementById('video-end-message');
-        let playMusicBtn = document.getElementById('play-music-btn');
-        let volumeBtn = document.getElementById('volume-btn');
         
         let isVideoPlaying = false;
         let sceneInitialized = false;
-        let isScanning = false;
-        let scanAnimationInterval;
         let targetImageVisible = false;
         let videoEnded = false;
-        let isMusicPlaying = false;
-        let musicVolume = 0.3;
-        let currentVolume = 0.3;
 
-        // Configuración inicial
+        // Configuración del video SIN LOOP y SIN AUDIO
         video.loop = false;
-        video.muted = true;
-        music.volume = musicVolume;
-        music.loop = true;
+        video.muted = true; // Aseguramos que esté muteado
 
         // Evento cuando el video se está cargando
         video.addEventListener('progress', function() {
@@ -442,23 +318,11 @@
             }
         });
 
-        // Evento cuando cambia el tiempo de reproducción del video
+        // Evento cuando cambia el tiempo de reproducción
         video.addEventListener('timeupdate', function() {
             if (video.duration > 0) {
                 const percent = (video.currentTime / video.duration) * 100;
                 videoProgressBar.style.width = percent + '%';
-                
-                // Sincronizar volumen de música con progreso del video
-                if (isMusicPlaying) {
-                    // Aumentar volumen gradualmente al inicio
-                    if (percent < 10) {
-                        music.volume = Math.min(musicVolume, currentVolume * (percent / 10));
-                    }
-                    // Disminuir volumen gradualmente al final
-                    if (percent > 90) {
-                        music.volume = currentVolume * (1 - (percent - 90) / 10);
-                    }
-                }
                 
                 // Ocultar mensaje "FIN" si está visible y se reinicia
                 if (percent < 99 && videoEndMessage.classList.contains('show')) {
@@ -476,10 +340,7 @@
             // Mostrar mensaje "FIN"
             showVideoEndMessage();
             
-            // Disminuir música gradualmente
-            fadeOutMusic();
-            
-            // Ocultar elementos
+            // Ocultar barra de progreso y estado
             setTimeout(() => {
                 videoProgressContainer.style.display = 'none';
                 videoStatus.style.display = 'none';
@@ -498,7 +359,6 @@
                 loadingOverlay.style.display = 'none';
                 sceneInitialized = true;
                 instruction.style.display = 'block';
-                startScanningVisuals();
                 showTargetImage();
             }, 500);
         });
@@ -514,11 +374,6 @@
                 hideVideoEndMessage();
             }
             
-            // Iniciar música si está configurada para reproducirse
-            if (isMusicPlaying) {
-                playMusic();
-            }
-            
             // Ocultar elementos de escaneo
             instruction.style.display = 'none';
             scanningMessage.style.display = 'none';
@@ -528,14 +383,12 @@
                 hideTargetImage();
             }, 100);
             
-            stopScanningVisuals();
-            
             // Mostrar elementos de reproducción
             videoProgressContainer.style.display = 'block';
             videoStatus.style.display = 'block';
             videoStatus.textContent = "Reproduciendo...";
             
-            // Reproducir video
+            // Reproducir video (sin loop)
             playVideo();
         });
 
@@ -545,10 +398,7 @@
             // Pausar video si se está reproduciendo
             pauseVideo();
             
-            // Pausar música
-            pauseMusic();
-            
-            // Ocultar elementos de reproducción
+            // Ocultar barra de progreso y estado
             videoProgressContainer.style.display = 'none';
             videoStatus.style.display = 'none';
             
@@ -563,28 +413,19 @@
             setTimeout(() => {
                 showTargetImage();
             }, 100);
-            
-            // Reiniciar escaneo visual
-            setTimeout(() => {
-                if (!isScanning) {
-                    startScanningVisuals();
-                }
-            }, 500);
         });
 
         // Inicializar escena
         document.querySelector('a-scene').addEventListener('renderstart', function() {
             console.log('🎬 MindAR iniciado');
             scanningMessage.style.display = 'block';
-            startScanningVisuals();
             showTargetImage();
             
-            // Precargar video y música
+            // Precargar video
             video.load();
-            music.load();
         });
 
-        // Funciones para mostrar/ocultar elementos
+        // Función para mostrar/ocultar la imagen del target
         function showTargetImage() {
             if (!targetImageVisible) {
                 targetImageOverlay.classList.add('show');
@@ -599,43 +440,13 @@
             }
         }
 
+        // Función para mostrar/ocultar mensaje "FIN"
         function showVideoEndMessage() {
             videoEndMessage.classList.add('show');
         }
 
         function hideVideoEndMessage() {
             videoEndMessage.classList.remove('show');
-        }
-
-        // Función para iniciar efectos visuales de escaneo
-        function startScanningVisuals() {
-            isScanning = true;
-            
-            // Mostrar marcadores de esquina
-            cornerMarkers.forEach(marker => {
-                marker.style.display = 'block';
-            });
-            
-            // Efecto de pulsación en las esquinas
-            scanAnimationInterval = setInterval(() => {
-                cornerMarkers.forEach(marker => {
-                    marker.style.boxShadow = `0 0 ${8 + Math.random() * 8}px rgba(210, 180, 140, 0.2)`;
-                });
-            }, 2000);
-        }
-
-        function stopScanningVisuals() {
-            isScanning = false;
-            
-            // Ocultar marcadores de esquina
-            cornerMarkers.forEach(marker => {
-                marker.style.display = 'none';
-            });
-            
-            // Detener animación
-            if (scanAnimationInterval) {
-                clearInterval(scanAnimationInterval);
-            }
         }
 
         // Función para actualizar la barra de carga
@@ -645,13 +456,13 @@
             loadingText.textContent = roundedPercent + '% cargado';
         }
 
-        // Funciones de control de video
+        // Funciones de control de video (sin loop)
         function playVideo() {
             if (video.paused && !videoEnded) {
                 video.play()
                     .then(() => {
                         isVideoPlaying = true;
-                        console.log('▶ Video reproduciéndose');
+                        console.log('▶ Video reproduciéndose (sin audio)');
                     })
                     .catch(e => {
                         console.error('Error al reproducir:', e);
@@ -667,117 +478,37 @@
             }
         }
 
-        // Funciones de control de música
-        function toggleMusic() {
-            if (isMusicPlaying) {
-                pauseMusic();
-                playMusicBtn.textContent = '🎵 Reproducir Música';
-            } else {
-                isMusicPlaying = true;
-                playMusicBtn.textContent = '⏸ Pausar Música';
-                
-                // Solo reproducir si hay video activo
-                if (isVideoPlaying) {
-                    playMusic();
-                }
-            }
-        }
-
-        function playMusic() {
-            if (music.paused && isMusicPlaying) {
-                music.currentTime = 0;
-                music.volume = currentVolume;
-                music.play()
-                    .then(() => {
-                        console.log('🎻 Música de Vivaldi reproduciéndose');
-                    })
-                    .catch(e => {
-                        console.log('⚠️ No se pudo reproducir la música:', e);
-                    });
-            }
-        }
-
-        function pauseMusic() {
-            if (!music.paused) {
-                music.pause();
-                console.log('⏸ Música pausada');
-            }
-        }
-
-        function fadeOutMusic() {
-            if (!isMusicPlaying) return;
-            
-            let fadeVolume = currentVolume;
-            const fadeInterval = setInterval(() => {
-                if (fadeVolume > 0.1) {
-                    fadeVolume -= 0.02;
-                    music.volume = fadeVolume;
-                } else {
-                    clearInterval(fadeInterval);
-                    pauseMusic();
-                }
-            }, 100);
-        }
-
-        function toggleVolume() {
-            if (currentVolume === 0.3) {
-                currentVolume = 0.6;
-                volumeBtn.textContent = '🔊 Volumen Alto';
-            } else if (currentVolume === 0.6) {
-                currentVolume = 0.1;
-                volumeBtn.textContent = '🔈 Volumen Bajo';
-            } else {
-                currentVolume = 0.3;
-                volumeBtn.textContent = '🔊 Volumen';
-            }
-            
-            if (!music.paused) {
-                music.volume = currentVolume;
-            }
-        }
-
         // Manejar pausa automática cuando se cambia de pestaña
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 pauseVideo();
-                pauseMusic();
-                stopScanningVisuals();
                 hideTargetImage();
                 hideVideoEndMessage();
             } else if (sceneInitialized && !isVideoPlaying && !videoEnded) {
-                startScanningVisuals();
-                scanningMessage.style.display = 'block';
                 showTargetImage();
             }
         });
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Experiencia Clásica de Iguazú iniciada');
+            console.log('🚀 Experiencia AR de Iguazú iniciada (sin audio)');
             
-            // Precargar recursos
+            // Precargar el video inmediatamente
             video.load();
             
             // Configurar el mensaje de escaneo para cambiar cada 3 segundos
             setInterval(() => {
                 if (scanningMessage.style.display === 'block') {
                     const messages = [
-                        '🔍 Escaneando...',
-                        '🎵 Buscando armonía...',
-                        '🎻 Sintonizando la naturaleza...',
-                        '🌿 Conectando con Iguazú...'
+                        '⚡ Escaneando...',
+                        '🔍 Buscando imán...',
+                        '📱 Enfocando...',
+                        '✨ Detectando...'
                     ];
                     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
                     scanningMessage.textContent = randomMessage;
                 }
             }, 3000);
-            
-            // Efecto de carga elegante
-            setTimeout(() => {
-                if (!sceneInitialized) {
-                    loadingText.textContent = "Preparando Las Cuatro Estaciones...";
-                }
-            }, 2000);
         });
     </script>
 </body>
