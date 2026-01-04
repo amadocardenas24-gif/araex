@@ -74,6 +74,36 @@
             position: relative;
         }
         
+        /* Imagen del target que aparece mientras se escanea */
+        #target-image-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ff88;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+        
+        #target-image-overlay.show {
+            opacity: 1;
+        }
+        
+        #target-image {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 5px;
+        }
+        
         /* Instrucciones */
         .instruction {
             position: absolute;
@@ -234,6 +264,30 @@
             from { transform: scale(1); opacity: 1; }
             to { transform: scale(1.5); opacity: 0.5; }
         }
+        
+        /* Efecto de detección */
+        .detection-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,255,136,0.8) 0%, rgba(0,255,136,0) 70%);
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .detection-effect.active {
+            animation: detectionPulse 1s ease-out;
+        }
+        
+        @keyframes detectionPulse {
+            0% { width: 0; height: 0; opacity: 1; }
+            100% { width: 300px; height: 300px; opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -245,6 +299,14 @@
         </div>
         <div class="progress-text" id="loading-text">0%</div>
     </div>
+    
+    <!-- Imagen del target que aparece mientras se escanea -->
+    <div id="target-image-overlay">
+        <img id="target-image" src="" alt="Imán Iguazú">
+    </div>
+    
+    <!-- Efecto de detección -->
+    <div class="detection-effect" id="detection-effect"></div>
     
     <!-- Instrucciones -->
     <div class="instruction" id="instruction">
@@ -284,6 +346,7 @@
             embedded
         >
             <a-assets>
+                <!-- Video AR -->
                 <video 
                     id="ar-video" 
                     src="./asset.mp4" 
@@ -293,6 +356,13 @@
                     crossorigin="anonymous"
                     preload="auto"
                 ></video>
+                
+                <!-- Sonido de detección -->
+                <audio 
+                    id="detection-sound" 
+                    src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" 
+                    preload="auto"
+                ></audio>
             </a-assets>
             
             <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse"></a-camera>
@@ -320,6 +390,7 @@
         // Variables globales
         let video = document.getElementById('ar-video');
         let arTarget = document.getElementById('ar-target');
+        let detectionSound = document.getElementById('detection-sound');
         let loadingOverlay = document.getElementById('loading-overlay');
         let loadingBar = document.getElementById('loading-bar');
         let loadingText = document.getElementById('loading-text');
@@ -329,12 +400,29 @@
         let videoControls = document.getElementById('video-controls');
         let playBtn = document.getElementById('play-btn');
         let scanningMessage = document.getElementById('scanning-message');
+        let targetImageOverlay = document.getElementById('target-image-overlay');
+        let targetImage = document.getElementById('target-image');
+        let detectionEffect = document.getElementById('detection-effect');
         let cornerMarkers = document.querySelectorAll('.corner-marker');
         let trackingDots = document.querySelectorAll('.tracking-dot');
         let isVideoPlaying = false;
         let sceneInitialized = false;
         let isScanning = false;
         let scanAnimationInterval;
+        let targetImageVisible = false;
+
+        // URL de la imagen del target (puedes cambiarla por la imagen real de tu imán)
+        const targetImageURL = "./target-preview.jpg"; // Cambia esto por la ruta de tu imagen
+
+        // Cargar la imagen del target
+        targetImage.src = targetImageURL;
+        targetImage.onload = function() {
+            console.log("✅ Imagen del target cargada");
+        };
+        targetImage.onerror = function() {
+            console.log("❌ Error cargando imagen del target, usando imagen por defecto");
+            targetImage.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23002233'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%2300ff88' font-family='Arial' font-size='24'%3EIM%C3%81N%20IGUAZ%C3%9A%3C/text%3E%3C/svg%3E";
+        };
 
         // Evento cuando el video se está cargando
         video.addEventListener('progress', function() {
@@ -356,6 +444,7 @@
                 sceneInitialized = true;
                 instruction.style.display = 'block';
                 startScanningVisuals();
+                showTargetImage();
             }, 500);
         });
 
@@ -370,8 +459,17 @@
         // Eventos de MindAR
         arTarget.addEventListener('targetFound', function() {
             console.log('✅ Imán detectado');
+            
+            // Reproducir sonido de detección
+            playDetectionSound();
+            
+            // Mostrar efecto visual de detección
+            showDetectionEffect();
+            
+            // Ocultar elementos de escaneo
             instruction.style.display = 'none';
             scanningMessage.style.display = 'none';
+            hideTargetImage();
             stopScanningVisuals();
             hideTrackingDots();
             
@@ -385,7 +483,13 @@
 
         arTarget.addEventListener('targetLost', function() {
             console.log('❌ Imán perdido');
+            
+            // Mostrar elementos de escaneo
             instruction.style.display = 'block';
+            scanningMessage.style.display = 'block';
+            showTargetImage();
+            
+            // Ocultar controles de video
             videoControls.classList.remove('show');
             videoProgressContainer.style.display = 'none';
             
@@ -396,7 +500,6 @@
             setTimeout(() => {
                 if (!isScanning) {
                     startScanningVisuals();
-                    scanningMessage.style.display = 'block';
                 }
             }, 500);
         });
@@ -406,10 +509,62 @@
             console.log('🎬 MindAR iniciado');
             scanningMessage.style.display = 'block';
             startScanningVisuals();
+            showTargetImage();
             
-            // Precargar video
+            // Precargar video y sonido
             video.load();
+            detectionSound.load();
         });
+
+        // Función para mostrar/ocultar la imagen del target
+        function showTargetImage() {
+            if (!targetImageVisible) {
+                targetImageOverlay.classList.add('show');
+                targetImageVisible = true;
+                
+                // Efecto de aparición
+                targetImageOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+                setTimeout(() => {
+                    targetImageOverlay.style.transform = 'translate(-50%, -50%) scale(1.05)';
+                    setTimeout(() => {
+                        targetImageOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+                    }, 100);
+                }, 10);
+            }
+        }
+
+        function hideTargetImage() {
+            if (targetImageVisible) {
+                targetImageOverlay.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                setTimeout(() => {
+                    targetImageOverlay.classList.remove('show');
+                    targetImageVisible = false;
+                }, 300);
+            }
+        }
+
+        // Función para reproducir sonido de detección
+        function playDetectionSound() {
+            if (detectionSound) {
+                // Reiniciar el sonido si ya estaba reproduciéndose
+                detectionSound.currentTime = 0;
+                
+                // Reproducir el sonido
+                detectionSound.play().catch(e => {
+                    console.log("⚠️ No se pudo reproducir sonido:", e);
+                    // Los navegadores pueden bloquear el autoplay de audio
+                    // Podemos intentar reproducir después de una interacción del usuario
+                });
+            }
+        }
+
+        // Función para mostrar efecto visual de detección
+        function showDetectionEffect() {
+            detectionEffect.classList.remove('active');
+            // Forzar reflow para reiniciar la animación
+            void detectionEffect.offsetWidth;
+            detectionEffect.classList.add('active');
+        }
 
         // Función para iniciar efectos visuales de escaneo
         function startScanningVisuals() {
@@ -574,9 +729,11 @@
             if (document.hidden) {
                 pauseVideo();
                 stopScanningVisuals();
+                hideTargetImage();
             } else if (sceneInitialized && !isVideoPlaying) {
                 startScanningVisuals();
                 scanningMessage.style.display = 'block';
+                showTargetImage();
             }
         });
 
@@ -591,8 +748,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Iguazú AR Experience inicializado');
             
-            // Precargar el video inmediatamente
+            // Precargar el video y sonido inmediatamente
             video.load();
+            detectionSound.load();
             
             // Configurar el mensaje de escaneo para cambiar cada 3 segundos
             setInterval(() => {
