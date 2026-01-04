@@ -247,24 +247,6 @@
             border-top: none;
         }
         
-        /* Puntos de tracking */
-        .tracking-dot {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: #ff3366;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #ff3366;
-            z-index: 10;
-            display: none;
-            animation: pulse 1s infinite alternate;
-        }
-        
-        @keyframes pulse {
-            from { transform: scale(1); opacity: 1; }
-            to { transform: scale(1.5); opacity: 0.5; }
-        }
-        
         /* Efecto de detección */
         .detection-effect {
             position: absolute;
@@ -288,6 +270,22 @@
             0% { width: 0; height: 0; opacity: 1; }
             100% { width: 300px; height: 300px; opacity: 0; }
         }
+        
+        /* Icono de silencio */
+        .mute-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
     </style>
 </head>
 <body>
@@ -308,6 +306,11 @@
     <!-- Efecto de detección -->
     <div class="detection-effect" id="detection-effect"></div>
     
+    <!-- Indicador de silencio -->
+    <div class="mute-indicator">
+        🔇 Video sin sonido
+    </div>
+    
     <!-- Instrucciones -->
     <div class="instruction" id="instruction">
         📍 Apunta la cámara al imán de Iguazú
@@ -323,12 +326,6 @@
     <div class="corner-marker" id="corner-tr"></div>
     <div class="corner-marker" id="corner-bl"></div>
     <div class="corner-marker" id="corner-br"></div>
-    
-    <!-- Puntos de tracking -->
-    <div class="tracking-dot" id="tracking-dot-1"></div>
-    <div class="tracking-dot" id="tracking-dot-2"></div>
-    <div class="tracking-dot" id="tracking-dot-3"></div>
-    <div class="tracking-dot" id="tracking-dot-4"></div>
     
     <!-- Barra de progreso del video -->
     <div id="video-progress-container">
@@ -346,7 +343,7 @@
             embedded
         >
             <a-assets>
-                <!-- Video AR -->
+                <!-- Video AR (sin audio) -->
                 <video 
                     id="ar-video" 
                     src="./asset.mp4" 
@@ -356,13 +353,6 @@
                     crossorigin="anonymous"
                     preload="auto"
                 ></video>
-                
-                <!-- Sonido de detección -->
-                <audio 
-                    id="detection-sound" 
-                    src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" 
-                    preload="auto"
-                ></audio>
             </a-assets>
             
             <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse"></a-camera>
@@ -390,7 +380,6 @@
         // Variables globales
         let video = document.getElementById('ar-video');
         let arTarget = document.getElementById('ar-target');
-        let detectionSound = document.getElementById('detection-sound');
         let loadingOverlay = document.getElementById('loading-overlay');
         let loadingBar = document.getElementById('loading-bar');
         let loadingText = document.getElementById('loading-text');
@@ -404,15 +393,14 @@
         let targetImage = document.getElementById('target-image');
         let detectionEffect = document.getElementById('detection-effect');
         let cornerMarkers = document.querySelectorAll('.corner-marker');
-        let trackingDots = document.querySelectorAll('.tracking-dot');
         let isVideoPlaying = false;
         let sceneInitialized = false;
         let isScanning = false;
         let scanAnimationInterval;
         let targetImageVisible = false;
 
-        // URL de la imagen del target (puedes cambiarla por la imagen real de tu imán)
-        const targetImageURL = "./target-preview.jpg"; // Cambia esto por la ruta de tu imagen
+        // URL de la imagen del target
+        const targetImageURL = "./target-preview.jpg";
 
         // Cargar la imagen del target
         targetImage.src = targetImageURL;
@@ -460,9 +448,6 @@
         arTarget.addEventListener('targetFound', function() {
             console.log('✅ Imán detectado');
             
-            // Reproducir sonido de detección
-            playDetectionSound();
-            
             // Mostrar efecto visual de detección
             showDetectionEffect();
             
@@ -471,7 +456,6 @@
             scanningMessage.style.display = 'none';
             hideTargetImage();
             stopScanningVisuals();
-            hideTrackingDots();
             
             // Mostrar controles y barra de progreso
             videoControls.classList.add('show');
@@ -511,9 +495,8 @@
             startScanningVisuals();
             showTargetImage();
             
-            // Precargar video y sonido
+            // Precargar video
             video.load();
-            detectionSound.load();
         });
 
         // Función para mostrar/ocultar la imagen del target
@@ -543,21 +526,6 @@
             }
         }
 
-        // Función para reproducir sonido de detección
-        function playDetectionSound() {
-            if (detectionSound) {
-                // Reiniciar el sonido si ya estaba reproduciéndose
-                detectionSound.currentTime = 0;
-                
-                // Reproducir el sonido
-                detectionSound.play().catch(e => {
-                    console.log("⚠️ No se pudo reproducir sonido:", e);
-                    // Los navegadores pueden bloquear el autoplay de audio
-                    // Podemos intentar reproducir después de una interacción del usuario
-                });
-            }
-        }
-
         // Función para mostrar efecto visual de detección
         function showDetectionEffect() {
             detectionEffect.classList.remove('active');
@@ -575,17 +543,11 @@
                 marker.style.display = 'block';
             });
             
-            // Mostrar puntos de tracking con animación
-            showTrackingDots();
-            
             // Efecto de pulsación en las esquinas
             scanAnimationInterval = setInterval(() => {
                 cornerMarkers.forEach(marker => {
                     marker.style.boxShadow = `0 0 ${10 + Math.random() * 10}px #00ff88`;
                 });
-                
-                // Mover puntos de tracking aleatoriamente
-                moveTrackingDots();
             }, 2000);
         }
 
@@ -597,53 +559,10 @@
                 marker.style.display = 'none';
             });
             
-            // Ocultar puntos de tracking
-            hideTrackingDots();
-            
             // Detener animación
             if (scanAnimationInterval) {
                 clearInterval(scanAnimationInterval);
             }
-        }
-
-        function showTrackingDots() {
-            trackingDots.forEach((dot, index) => {
-                dot.style.display = 'block';
-                // Posiciones iniciales aleatorias
-                const x = 20 + Math.random() * (window.innerWidth - 40);
-                const y = 20 + Math.random() * (window.innerHeight - 40);
-                dot.style.left = `${x}px`;
-                dot.style.top = `${y}px`;
-                // Retraso en la animación para efecto escalonado
-                dot.style.animationDelay = `${index * 0.3}s`;
-            });
-        }
-
-        function hideTrackingDots() {
-            trackingDots.forEach(dot => {
-                dot.style.display = 'none';
-            });
-        }
-
-        function moveTrackingDots() {
-            trackingDots.forEach(dot => {
-                if (dot.style.display === 'block') {
-                    const currentX = parseInt(dot.style.left) || 0;
-                    const currentY = parseInt(dot.style.top) || 0;
-                    
-                    // Movimiento suave hacia nueva posición
-                    const newX = Math.max(20, Math.min(window.innerWidth - 32, currentX + (Math.random() * 100 - 50)));
-                    const newY = Math.max(20, Math.min(window.innerHeight - 32, currentY + (Math.random() * 100 - 50)));
-                    
-                    dot.style.transition = 'left 1s ease, top 1s ease';
-                    dot.style.left = `${newX}px`;
-                    dot.style.top = `${newY}px`;
-                    
-                    // Cambiar color aleatoriamente
-                    const colors = ['#ff3366', '#00ff88', '#3366ff', '#ffcc00'];
-                    dot.style.background = colors[Math.floor(Math.random() * colors.length)];
-                }
-            });
         }
 
         // Función para actualizar la barra de carga
@@ -721,7 +640,7 @@
 
         // Función de ayuda
         function showInstructions() {
-            alert('INSTRUCCIONES:\n\n1. Apunta la cámara al imán de Iguazú\n2. Mantén estable para activar el video\n3. Aleja el imán para pausar\n4. Usa los botones para controlar la reproducción');
+            alert('INSTRUCCIONES:\n\n1. Apunta la cámara al imán de Iguazú\n2. Mantén estable para activar el video\n3. Aleja el imán para pausar\n4. Usa los botones para controlar la reproducción\n\n⚠️ Esta experiencia no incluye sonido');
         }
 
         // Manejar pausa automática cuando se cambia de pestaña
@@ -737,20 +656,12 @@
             }
         });
 
-        // Ajustar visuales al cambiar tamaño de ventana
-        window.addEventListener('resize', function() {
-            if (isScanning) {
-                moveTrackingDots();
-            }
-        });
-
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Iguazú AR Experience inicializado');
             
-            // Precargar el video y sonido inmediatamente
+            // Precargar el video inmediatamente
             video.load();
-            detectionSound.load();
             
             // Configurar el mensaje de escaneo para cambiar cada 3 segundos
             setInterval(() => {
